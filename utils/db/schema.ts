@@ -45,7 +45,7 @@ export const Rewards = pgTable("rewards", {
   collectionInfo: text("collection_info").notNull(),
 });
 
-export const CollectedWaste = pgTable("collected_wasted", {
+export const CollectedWastes = pgTable("collected_wasted", {
   id: serial("id").primaryKey(),
   reportId: integer("report_id")
     .references(() => Reports.id)
@@ -55,4 +55,26 @@ export const CollectedWaste = pgTable("collected_wasted", {
     .notNull(),
   collectionDate: timestamp("collection_date").notNull(),
   status: varchar("status", { length: 255 }).default("collected "),
+});
+
+export const Notifications = pgTable("notification", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id")
+    .references(() => Users.id)
+    .notNull(),
+  message: text("message").notNull(),
+  type: varchar("type", { length: 50 }).notNull(),
+  isRead: boolean("is_read").notNull().default(false),
+  timeCreate: timestamp("time_create").defaultNow().notNull(),
+});
+
+export const Transactions = pgTable("transaction", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id")
+    .references(() => Users.id)
+    .notNull(),
+  type: varchar("type", { length: 50 }).notNull(),
+  amount: integer("amount").notNull(),
+  description: text("description").notNull(),
+  date: timestamp("date").defaultNow().notNull(),
 });
