@@ -1,1 +1,10 @@
-// postgresql://recycle-waste-detecting_owner:0lPkBRiC2LeF@ep-winter-bird-a132hiy4.ap-southeast-1.aws.neon.tech/recycle-waste-detecting?sslmode=require
+import { neon } from "@neondatabase/serverless";
+
+import { drizzle } from "drizzle-orm/neon-http";
+
+import * as schema from "./schema";
+
+const sql = neon(process.env.DATABASE_URL);
+
+export const db = drizzle(sql, { schema });
+
