@@ -30,6 +30,7 @@ export default function RootLayout({
             </main>
           </div>
         </div>
+        <Toaster/>
       </body>
     </html>
   );
