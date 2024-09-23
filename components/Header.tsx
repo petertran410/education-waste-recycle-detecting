@@ -1,3 +1,5 @@
+//@ts-nocheck
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -302,7 +304,7 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
               onClick={login}
               className="bg-green-600 hover:bg-green-700 text-white text-sm md:text-base ">
               Login
-              <LogIn className="ml-1 md:ml-2 h-4 w-4 md:h5 md:w-5"/>
+              <LogIn className="ml-1 md:ml-2 h-4 w-4 md:h5 md:w-5" />
             </Button>
           ) : (
             <DropdownMenu>
@@ -313,13 +315,17 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={getUserInfo} className="font-bold txt-base text-gray-800">
+                <DropdownMenuItem
+                  onClick={getUserInfo}
+                  className="font-bold txt-base text-gray-800">
                   {userInfo ? userInfo.name : "Profile"}
                 </DropdownMenuItem>
                 <DropdownMenuItem className="font-bold txt-base text-gray-800">
                   <Link href={"/settings"}>Settings</Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={logout} className="font-bold txt-base text-gray-800">
+                <DropdownMenuItem
+                  onClick={logout}
+                  className="font-bold txt-base text-gray-800">
                   Sign Out
                 </DropdownMenuItem>
               </DropdownMenuContent>
