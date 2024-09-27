@@ -225,3 +225,44 @@ export const getRecentReports = async (limit: number = 10) => {
     return [];
   }
 };
+
+export const getAvailableRewards = async (userId: number) => {
+  try {
+    const userTransactions = await getRewardTransactions(userId);
+    const userPoints = userTransactions?.reduce(
+      (total: any, transaction: any) => {
+        return transaction.type.startsWith("earned")
+          ? total + transaction.amount
+          : total - transaction.amount;
+      },
+      0
+    );
+
+    const dbRewards = await db
+      .select({
+        id: Rewards.id,
+        name: Rewards.name,
+        cost: Rewards.points,
+        description: Rewards.description,
+        collectionInfo: Rewards.collectionInfo,
+      })
+      .from(Rewards)
+      .where(eq(Rewards.isAvailable, true))
+      .execute();
+
+    const allRewards = [
+      {
+        id: 0,
+        name: "Your Points",
+        cost: "userPoints",
+        description: "Redeem your earned points",
+        collectionInfo: "Points earned from reporting and collecting waste",
+      },
+      ...dbRewards,
+    ];
+    return allRewards;
+  } catch (error) {
+    console.log("Error fetching available rewards", error);
+    return [];
+  }
+};
