@@ -1,5 +1,5 @@
 import { db } from "./dbConfig";
-import { Notifications, Transactions, Users } from "./schema";
+import { Notifications, Transactions, Users, Reports, Rewards } from "./schema";
 import { eq, sql, and, desc } from "drizzle-orm";
 
 export const createUser = async (email: string, name: string) => {
@@ -92,5 +92,136 @@ export const markNotificationAsRead = async (notificationId: number) => {
       .execute();
   } catch (error) {
     console.log("Error marking notification as read", error);
+  }
+};
+
+export const updateRewardPoints = async (
+  userId: number,
+  pointsToAdd: number
+) => {
+  try {
+    const [updateReward] = await db
+      .update(Rewards)
+      .set({
+        points: sql`${Rewards.points} + ${pointsToAdd}`,
+      })
+      .where(eq(Rewards.userId, userId))
+      .returning()
+      .execute();
+    return updateReward;
+  } catch (error) {
+    console.log("Error updating reward points", error);
+  }
+};
+
+export const createTransaction = async (
+  userId: number,
+  type: "earned_report" | "earned_collect" | "redeemed",
+  amount: number,
+  description: string
+) => {
+  try {
+    const [transaction] = await db
+      .insert(Transactions)
+      .values({
+        userId,
+        type,
+        amount,
+        description,
+      })
+      .returning()
+      .execute();
+
+    return transaction;
+  } catch (error) {
+    console.log("Error creating transaction", error);
+    throw error;
+  }
+};
+
+export const createNotification = async (
+  userId: number,
+  message: string,
+  type: string
+) => {
+  try {
+    const [notification] = await db
+      .insert(Notifications)
+      .values({
+        userId,
+        message,
+        type,
+      })
+      .returning()
+      .execute();
+
+    return notification;
+  } catch (error) {
+    console.log("Error creating notification", error);
+    throw error;
+  }
+};
+
+export const createReport = async (
+  userId: number,
+  location: string,
+  wasteType: string,
+  amount: string,
+  imageUrl?: string,
+  verificationResult?: any
+) => {
+  try {
+    const [report] = await db
+      .insert(Reports)
+      .values({
+        userId,
+        location,
+        wasteType,
+        amount,
+        imageUrl,
+        verificationResult,
+        status: "pending",
+      })
+      .returning()
+      .execute();
+
+    const pointsEarned = 10;
+
+    // update rewards points
+    await updateRewardPoints(userId, pointsEarned);
+    // create transaction
+    await createTransaction(
+      userId,
+      "earned_report",
+      pointsEarned,
+      "Points earned for reporting waste "
+    );
+    // create notification
+    await createNotification(
+      userId,
+      `You have earned ${pointsEarned} points for reporting waste!`,
+      "reward"
+    );
+
+    return report;
+  } catch (error) {
+    console.log("Error creating report", error);
+    throw error;
+  }
+};
+
+export const getRecentReports = async (limit: number = 10) => {
+  try {
+    const reports = await db
+      .select()
+      .from(Reports)
+      .orderBy(desc(Reports.timeCreate))
+      .limit(limit)
+      .execute();
+
+    return reports;
+  } catch (error) {
+    console.log("Error fecting recent reports", error);
+    return [];
   }
 };
