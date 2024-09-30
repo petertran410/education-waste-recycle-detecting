@@ -1,5 +1,4 @@
 //@ts-nocheck
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -45,11 +44,11 @@ const chainConfig = {
   chainNamespace: CHAIN_NAMESPACES.EIP155,
   chainId: "0xaa36a7",
   rpcTarget: "https://rpc.ankr.com/eth_sepolia",
-  displayName: "Sepolia Testnet",
+  displayName: "Ethereum Sepolia Testnet",
   blockExplorerUrl: "https://sepolia.etherscan.io",
   ticker: "ETH",
   tickerName: "Ethereum",
-  logo: "https://assets.web3auth.io/evm-chains/sepolia.png",
+  logo: "https://cryptologos.cc/logos/ethereum-eth-logo.png",
 };
 
 const privateKeyProvider = new EthereumPrivateKeyProvider({
@@ -72,10 +71,12 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
   const [loggedIn, setLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userInfo, setUserInfo] = useState<any>(null);
-  const pathName = usePathname();
-  const [notification, setNotification] = useState<Notification[]>([]);
-  const [balance, setBalance] = useState(0);
+  const pathname = usePathname();
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const isMobile = useMediaQuery("(max-width: 768px)");
+  const [balance, setBalance] = useState(0);
+
+  console.log("user info", userInfo);
 
   useEffect(() => {
     const init = async () => {
@@ -110,20 +111,22 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
   }, []);
 
   useEffect(() => {
-    const fetchNotification = async () => {
+    const fetchNotifications = async () => {
       if (userInfo && userInfo.email) {
         const user = await getUserByEmail(userInfo.email);
-
         if (user) {
           const unreadNotifications = await getUnreadNotification(user.id);
-          setNotification(unreadNotifications);
+          setNotifications(unreadNotifications);
         }
-        fetchNotification();
-
-        const notificationInterval = setInterval(fetchNotification, 30000);
-        return () => clearInterval(notificationInterval);
       }
     };
+
+    fetchNotifications();
+
+    // Set up periodic checking for new notifications
+    const notificationInterval = setInterval(fetchNotifications, 30000); // Check every 30 seconds
+
+    return () => clearInterval(notificationInterval);
   }, [userInfo]);
 
   useEffect(() => {
@@ -131,28 +134,29 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
       if (userInfo && userInfo.email) {
         const user = await getUserByEmail(userInfo.email);
         if (user) {
-          const userBalance = getUserBalance(user.id);
-          setBalance(await userBalance);
+          const userBalance = await getUserBalance(user.id);
+          setBalance(userBalance);
         }
       }
+    };
 
-      fetchUserBalance();
+    fetchUserBalance();
 
-      const handleBalanceUpdate = (event: CustomEvent) => {
-        setBalance(event.detail);
-      };
+    // Add an event listener for balance updates
+    const handleBalanceUpdate = (event: CustomEvent) => {
+      setBalance(event.detail);
+    };
 
-      window.addEventListener(
-        "Balance Update",
+    window.addEventListener(
+      "balanceUpdated",
+      handleBalanceUpdate as EventListener
+    );
+
+    return () => {
+      window.removeEventListener(
+        "balanceUpdated",
         handleBalanceUpdate as EventListener
       );
-
-      return () => {
-        window.removeEventListener(
-          "Balance Update",
-          handleBalanceUpdate as EventListener
-        );
-      };
     };
   }, [userInfo]);
 
@@ -214,6 +218,11 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
 
   const handleNotificationClick = async (notificationId: number) => {
     await markNotificationAsRead(notificationId);
+    setNotification((prevNotifications) =>
+      prevNotifications.filter(
+        (notification) => notification.id !== notificationId
+      )
+    );
   };
 
   if (loading) {
@@ -267,16 +276,16 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="mr-2 relative">
                 <Bell className="h-5 w-5 text-gray-800" />
-                {notification.length > 0 && (
+                {notifications.length > 0 && (
                   <Badge className="absolute -top-1 -right-1 px-1 min-x-[1.2rem] h-5">
-                    {notification.length}
+                    {notifications.length}
                   </Badge>
                 )}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-64">
-              {notification.length > 0 ? (
-                notification.map((notification: any) => (
+              {notifications.length > 0 ? (
+                notifications.map((notification) => (
                   <DropdownMenuItem
                     key={notification.id}
                     onClick={() => handleNotificationClick(notification.id)}>

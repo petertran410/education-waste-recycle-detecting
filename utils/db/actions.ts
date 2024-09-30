@@ -228,7 +228,9 @@ export const getRecentReports = async (limit: number = 10) => {
 
 export const getAvailableRewards = async (userId: number) => {
   try {
-    const userTransactions = await getRewardTransactions(userId);
+    console.log("Fetching available rewards for user", userId);
+
+    const userTransactions = (await getRewardTransactions(userId)) as any;
     const userPoints = userTransactions?.reduce(
       (total: any, transaction: any) => {
         return transaction.type.startsWith("earned")
@@ -264,5 +266,55 @@ export const getAvailableRewards = async (userId: number) => {
   } catch (error) {
     console.log("Error fetching available rewards", error);
     return [];
+  }
+};
+
+export const getWasteCollectionTask = async (limit: number = 20) => {
+  try {
+    const tasks = await db
+      .select({
+        id: Reports.id,
+        location: Reports.location,
+        wasteType: Reports.wasteType,
+        amount: Reports.amount,
+        status: Reports.status,
+        date: Reports.timeCreate,
+        collectorId: Reports.collectorId,
+      })
+      .from(Reports)
+      .limit(limit)
+      .execute();
+
+    return tasks.map((task: any) => ({
+      ...task,
+      date: task.date.toISOString.split("T")[0],
+    }));
+  } catch (error) {
+    console.log("Error get waste collection task", error);
+    return [];
+  }
+};
+
+export const updateTaskStatus = async (
+  reportId: number,
+  newStatus: string,
+  collectorId: number
+) => {
+  try {
+    const updateData: any = { status: newStatus };
+    if (collectorId !== undefined) {
+      updateData.collectorId == collectorId;
+    }
+
+    const [updateReport] = await db
+      .update(Reports)
+      .set(updateData)
+      .where(eq(Reports.id, reportId))
+      .returning()
+      .execute();
+    return updateReport;
+  } catch (error) {
+    console.log("Error updating task status", error);
+    throw error;
   }
 };
