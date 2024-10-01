@@ -13,6 +13,7 @@ import {
 } from "@/utils/db/actions";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
+import React from "react";
 
 const geminiApiKey = process.env.GEMINI_API_KEY;
 const googleMapsApiKey = process.env.GOOGLE_MAPS_API_KEY;
@@ -129,25 +130,24 @@ export default function ReportPage() {
         },
       ];
 
-      const prompt = `You are an expert in waste management and recycling. Analyze this image and provide the following strictly in JSON format:
-      {
-        "wasteType": "type of waste",
-        "quantity": "estimated quantity with unit",
-        "confidence": confidence level as a number between 0 and 1
-      }
-      Do not include any additional explanation or comments.`;
+      const prompt = `You are an expert in waste management and recycling. Analyze this image and provide:
+        1. The type of waste (e.g., plastic, paper, glass, metal, organic)
+        2. An estimate of the quantity or amount (in kg or liters)
+        3. Your confidence level in this assessment (as a percentage)
+        
+        Respond in JSON format like this:
+        {
+          "wasteType": "type of waste",
+          "quantity": "estimated quantity with unit",
+          "confidence": confidence level as a number between 0 and 1
+        }`;
 
       const result = await model.generateContent([prompt, ...imageParts]);
       const response = await result.response;
-      const text = await response.text();
+      const text = response.text();
 
       try {
-        // Ensure you're only trying to parse JSON part
-        const jsonStartIndex = text.indexOf("{");
-        const jsonEndIndex = text.lastIndexOf("}");
-        const jsonText = text.slice(jsonStartIndex, jsonEndIndex + 1);
-        const parsedResult = JSON.parse(jsonText);
-
+        const parsedResult = JSON.parse(text);
         if (
           parsedResult.wasteType &&
           parsedResult.quantity &&
@@ -165,37 +165,9 @@ export default function ReportPage() {
           setVerificationStatus("failure");
         }
       } catch (error) {
-        console.error("Failed to parse JSON response:", error);
-        console.error("Response text:", text);
+        console.error("Failed to parse JSON response:", text);
         setVerificationStatus("failure");
       }
-
-      // const result = await model.generateContent([prompt, ...imageParts]);
-      // const response = await result.response;
-      // const text = response.text();
-
-      // try {
-      //   const parsedResult = JSON.parse(text);
-      //   if (
-      //     parsedResult.wasteType &&
-      //     parsedResult.quantity &&
-      //     parsedResult.confidence
-      //   ) {
-      //     setVerificationResult(parsedResult);
-      //     setVerificationStatus("success");
-      //     setNewReport({
-      //       ...newReport,
-      //       type: parsedResult.wasteType,
-      //       amount: parsedResult.quantity,
-      //     });
-      //   } else {
-      //     console.error("Invalid verification result:", parsedResult);
-      //     setVerificationStatus("failure");
-      //   }
-      // } catch (error) {
-      //   console.error("Failed to parse JSON response:", text);
-      //   setVerificationStatus("failure");
-      // }
     } catch (error) {
       console.error("Error verifying waste:", error);
       setVerificationStatus("failure");
@@ -334,7 +306,7 @@ export default function ReportPage() {
         </Button>
 
         {verificationStatus === "success" && verificationResult && (
-          <div className="bg-green-50 border-l-4 border-green-400 p-4 mb-8 rounded-r-xl">
+          <div className="bg-green-50 border-l-4 border-green-400 p-4 mb-8 rounded-r-xl ">
             <div className="flex items-center">
               <CheckCircle className="h-6 w-6 text-green-400 mr-3" />
               <div>
@@ -354,7 +326,7 @@ export default function ReportPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 text-gray-600">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 text-gray-500">
           <div>
             <label
               htmlFor="location"
