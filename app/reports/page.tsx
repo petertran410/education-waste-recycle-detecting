@@ -145,7 +145,6 @@ export default function ReportPage() {
       const result = await model.generateContent([prompt, ...imageParts]);
       const response = await result.response;
       const text = response.text();
-
       try {
         const parsedResult = JSON.parse(text);
         if (
@@ -165,7 +164,7 @@ export default function ReportPage() {
           setVerificationStatus("failure");
         }
       } catch (error) {
-        console.error("Failed to parse JSON response:", text);
+        console.error("Failed to parse JSON response:", error);
         setVerificationStatus("failure");
       }
     } catch (error) {

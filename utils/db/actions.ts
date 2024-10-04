@@ -54,7 +54,7 @@ export const getUserBalance = async (userId: number): Promise<number> => {
     return 0;
   }
 
-  const balance = transactions.reduce((acc: number, transaction: any) => {
+  const balance = transactions.reduce((acc: any, transaction: any) => {
     return transaction.type.startsWith("earned")
       ? acc + transaction.amount
       : acc - transaction.amount;
@@ -235,8 +235,6 @@ export const getRecentReports = async (limit: number = 10) => {
 
 export const getAvailableRewards = async (userId: number) => {
   try {
-    console.log("Fetching available rewards for user", userId);
-
     const userTransactions = (await getRewardTransactions(userId)) as any;
     const userPoints = userTransactions?.reduce(
       (total: any, transaction: any) => {
@@ -263,7 +261,7 @@ export const getAvailableRewards = async (userId: number) => {
       {
         id: 0,
         name: "Your Points",
-        cost: "userPoints",
+        cost: userPoints,
         description: "Redeem your earned points",
         collectionInfo: "Points earned from reporting and collecting waste",
       },

@@ -224,9 +224,7 @@ export default function CollectPage() {
           );
         }
       } catch (error) {
-        console.log(error);
-
-        console.error("Failed to parse JSON response:", text);
+        console.error("Failed to parse JSON response:", error);
         setVerificationStatus("failure");
       }
     } catch (error) {
