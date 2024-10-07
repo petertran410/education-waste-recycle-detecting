@@ -374,3 +374,26 @@ export const saveCollectedWaste = async (
     throw error;
   }
 };
+
+export const getAllRewards = async () => {
+  try {
+    const rewards = await db
+      .select({
+        id: Rewards.id,
+        userId: Rewards.userId,
+        points: Rewards.points,
+        level: Rewards.level,
+        timeCreate: Rewards.timeCreate,
+        userName: Rewards.name,
+      })
+      .from(Rewards)
+      .leftJoin(Users, eq(Rewards.id, Users.id))
+      .orderBy(desc(Rewards.points))
+      .execute();
+
+    return rewards;
+  } catch (error) {
+    console.log("Error fetching all rewards", error);
+    return [];
+  }
+};
