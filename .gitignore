@@ -10,7 +10,7 @@
 /coverage
 
 # environment
-.env
+# .env
 
 # next.js
 /.next/
