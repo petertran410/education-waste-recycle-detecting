@@ -1,14 +1,10 @@
 import {
-  ArrowRight,
   Leaf,
   Recycle,
-  Users,
   Coins,
   MapPin,
-  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
 
 const AnimatedGlobe = () => {
   return (

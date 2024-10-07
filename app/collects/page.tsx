@@ -98,6 +98,8 @@ export default function CollectPage() {
   } | null>(null);
   const [reward, setReward] = useState<number | null>(null);
 
+  console.log(reward);
+
   const handleStatusChange = async (
     taskId: number,
     newStatus: CollectionTask["status"]
