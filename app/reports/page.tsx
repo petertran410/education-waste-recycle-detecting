@@ -145,26 +145,62 @@ export default function ReportPage() {
       const result = await model.generateContent([prompt, ...imageParts]);
       const response = await result.response;
       const text = response.text();
+      // try {
+      //   const parsedResult = JSON.parse(text);
+      //   if (
+      //     parsedResult.wasteType &&
+      //     parsedResult.quantity &&
+      //     parsedResult.confidence
+      //   ) {
+      //     setVerificationResult(parsedResult);
+      //     setVerificationStatus("success");
+      //     setNewReport({
+      //       ...newReport,
+      //       type: parsedResult.wasteType,
+      //       amount: parsedResult.quantity,
+      //     });
+      //   } else {
+      //     console.error("Invalid verification result:", parsedResult);
+      //     setVerificationStatus("failure");
+      //   }
+      // } catch (error) {
+      //   console.error("Failed to parse JSON response:", error);
+      //   setVerificationStatus("failure");
+      // }
+
       try {
-        const parsedResult = JSON.parse(text);
-        if (
-          parsedResult.wasteType &&
-          parsedResult.quantity &&
-          parsedResult.confidence
-        ) {
-          setVerificationResult(parsedResult);
-          setVerificationStatus("success");
-          setNewReport({
-            ...newReport,
-            type: parsedResult.wasteType,
-            amount: parsedResult.quantity,
-          });
-        } else {
-          console.error("Invalid verification result:", parsedResult);
+        const text = response.text();
+
+        // Clean up response to remove potential backticks and formatting
+        const cleanedText = text
+          .replace(/```json/g, "") // Remove starting backticks and 'json' if present
+          .replace(/```/g, "") // Remove ending backticks
+          .trim(); // Remove any leading/trailing whitespace
+
+        try {
+          const parsedResult = JSON.parse(cleanedText);
+          if (
+            parsedResult.wasteType &&
+            parsedResult.quantity &&
+            parsedResult.confidence
+          ) {
+            setVerificationResult(parsedResult);
+            setVerificationStatus("success");
+            setNewReport({
+              ...newReport,
+              type: parsedResult.wasteType,
+              amount: parsedResult.quantity,
+            });
+          } else {
+            console.error("Invalid verification result:", parsedResult);
+            setVerificationStatus("failure");
+          }
+        } catch (error) {
+          console.error("Failed to parse JSON response:", error);
           setVerificationStatus("failure");
         }
       } catch (error) {
-        console.error("Failed to parse JSON response:", error);
+        console.error("Error verifying waste:", error);
         setVerificationStatus("failure");
       }
     } catch (error) {

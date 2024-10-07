@@ -1,21 +1,20 @@
 "use client";
-
 import { useState, useEffect } from "react";
+import { getAllRewards, getUserByEmail } from "@/utils/db/actions";
 import { Loader, Award, User, Trophy, Crown } from "lucide-react";
 import { toast } from "react-hot-toast";
-import { getAllRewards, getUserByEmail } from "@/utils/db/actions";
 
 type Reward = {
   id: number;
   userId: number;
   points: number;
-  level: number,
+  level: number;
   timeCreate: Date;
   userName: string | null;
 };
 
 export default function LeaderboardPage() {
-  const [reward, setReward] = useState<Reward[]>([]);
+  const [rewards, setRewards] = useState<Reward[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<{
     id: number;
@@ -28,36 +27,37 @@ export default function LeaderboardPage() {
       setLoading(true);
       try {
         const fetchedRewards = await getAllRewards();
-        setReward(fetchedRewards);
+        setRewards(fetchedRewards);
 
         const userEmail = localStorage.getItem("userEmail");
-
         if (userEmail) {
           const fetchedUser = await getUserByEmail(userEmail);
           if (fetchedUser) {
             setUser(fetchedUser);
           } else {
-            toast.error("User not found. Please log in again");
+            toast.error("User not found. Please log in again.");
           }
         } else {
-          toast.error("User not found. Please log in again");
+          toast.error("User not logged in. Please log in.");
         }
       } catch (error) {
-        console.log("Error fetching rewards and user", error);
-        toast.error("Failed to load leaderboard. Please try again");
+        console.error("Error fetching rewards and user:", error);
+        toast.error("Failed to load leaderboard. Please try again.");
       } finally {
         setLoading(false);
       }
     };
+
     fetchRewardsAndUser();
   }, []);
 
   return (
-    <div>
+    <div className="">
       <div className="max-w-3xl mx-auto">
         <h1 className="text-3xl font-semibold mb-6 text-gray-800">
           Leaderboard{" "}
         </h1>
+
         {loading ? (
           <div className="flex justify-center items-center h-64">
             <Loader className="animate-spin h-8 w-8 text-gray-600" />
@@ -71,7 +71,6 @@ export default function LeaderboardPage() {
                 <Award className="h-10 w-10" />
               </div>
             </div>
-
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50">
@@ -91,7 +90,7 @@ export default function LeaderboardPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {reward.map((reward, index) => (
+                  {rewards.map((reward, index) => (
                     <tr
                       key={reward.id}
                       className={`${
